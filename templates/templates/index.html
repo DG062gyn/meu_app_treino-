@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowFit - Premium Workout Tracker</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-neon: #6366f1;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .routine-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .routine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .routine-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .progress-container {
+            width: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            height: 6px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #3b82f6);
+            transition: width 0.4s ease;
+        }
+
+        .exercise-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .exercise-row:last-child {
+            border-bottom: none;
+        }
+
+        .exercise-info {
+            flex-grow: 1;
+            padding-right: 16px;
+        }
+
+        .exercise-name {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+
+        .exercise-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+
+        .meta-tag {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .action-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .exercise-row.is-completed .exercise-name {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .exercise-row.is-completed .action-button {
+            background: var(--success);
+            border-color: var(--success);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>GLOWFIT</h1>
+        <p>Hipertrofia Avançada & Sequências Práticas</p>
+    </header>
+
+    <main>
+        {% for chave, dados in treinos.items() %}
+        <div class="routine-card" id="card-{{ chave }}">
+            <div class="routine-header">
+                <h2 class="routine-title">{{ dados.nome }}</h2>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-{{ chave }}"></div>
+                </div>
+            </div>
+            
+            <div class="exercise-list">
+                {% for ex in dados.exercicios %}
+                <div class="exercise-row">
+                    <div class="exercise-info">
+                        <div class="exercise-name">{{ ex.nome }}</div>
+                        <div class="exercise-meta">
+                            <span class="meta-tag">⚡ {{ ex.series }}</span>
+                            <span class="meta-tag">⏱️ {{ ex.descanso }}</span>
+                        </div>
+                    </div>
+                    <button class="action-button" onclick="toggleTask(this, '{{ chave }}')">Concluir</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </main>
+</div>
+
+<script>
+    function toggleTask(button, routineKey) {
+        const row = button.closest('.exercise-row');
+        row.classList.toggle('is-completed');
+        
+        if (row.classList.contains('is-completed')) {
+            button.innerText = 'Feito ✓';
+        } else {
+            button.innerText = 'Concluir';
+        }
+        
+        updateProgress(routineKey);
+    }
+
+    function updateProgress(routineKey) {
+        const card = document.getElementById(`card-${routineKey}`);
+        const total = card.querySelectorAll('.exercise-row').length;
+        const completed = card.querySelectorAll('.exercise-row.is-completed').length;
+        const progressBar = document.getElementById(`progress-${routineKey}`);
+        
+        const percentage = total > 0 ? (completed / total) * 100 : 0;
+        progressBar.style.width = percentage + '%';
+    }
+</script>
+
+</body>
+</html>
